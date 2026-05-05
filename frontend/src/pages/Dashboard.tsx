@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppDispatch';
-import { fetchTasks, createTask, updateTask, deleteTask, setFilters, setPage, setSelectedTask, clearError } from '@/store/slices/taskSlice';
+import { fetchTasks, createTask, updateTask, deleteTask, setFilters, setPage, clearError } from '@/store/slices/taskSlice';
 import { Task, TaskFilters } from '@/types/task.types';
 import { TaskFormData } from '@/validators/task.validator';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -13,10 +13,11 @@ import { Modal } from '@/components/common/Modal';
 import { TaskForm } from '@/components/tasks/TaskForm';
 import { DeleteConfirm } from '@/components/tasks/DeleteConfirm';
 import { Button } from '@/components/common/Button';
+import { RootState } from '@/store';
 
 export const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { tasks, total, page, limit, filters, loading, error } = useAppSelector(s => s.tasks);
+  const { tasks, total, page, limit, filters, loading, error } = useAppSelector((s: RootState) => s.tasks);
   const { toast } = useToast();
   const [localFilters, setLocalFilters] = useState<TaskFilters>(filters);
   const debouncedSearch = useDebounce(localFilters.search, 350);
@@ -24,7 +25,6 @@ export const Dashboard: React.FC = () => {
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
 
-  // Fetch when filters/page change
   useEffect(() => {
     dispatch(setFilters({ ...localFilters, search: debouncedSearch }));
   }, [debouncedSearch, localFilters.priority, localFilters.status]);
@@ -72,7 +72,6 @@ export const Dashboard: React.FC = () => {
   };
 
   const totalPages = Math.ceil(total / limit);
-
   const emptyState = !loading && tasks.length === 0;
 
   return (
@@ -80,10 +79,8 @@ export const Dashboard: React.FC = () => {
       <Header onNewTask={() => setShowCreate(true)} />
 
       <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Stats */}
         <StatsBar tasks={tasks} total={total} />
 
-        {/* Filters */}
         <section aria-label="Filter and search tasks">
           <TaskFiltersBar
             filters={localFilters}
@@ -92,17 +89,6 @@ export const Dashboard: React.FC = () => {
           />
         </section>
 
-        {/* Error */}
-        {error && (
-          <div role="alert" className="bg-rose-50 border border-rose-200 rounded-xl p-4 text-sm text-rose-700 flex items-center gap-2">
-            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-              <circle cx="12" cy="12" r="10" /><path d="M12 8v4m0 4h.01" strokeLinecap="round" />
-            </svg>
-            {error}
-          </div>
-        )}
-
-        {/* Task Grid */}
         <section aria-label="Task list" aria-live="polite" aria-busy={loading}>
           {loading && tasks.length === 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -140,7 +126,7 @@ export const Dashboard: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {tasks.map(task => (
+              {tasks.map((task: Task) => (
                 <TaskCard
                   key={task.id}
                   task={task}
@@ -153,61 +139,30 @@ export const Dashboard: React.FC = () => {
           )}
         </section>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <nav aria-label="Task list pagination" className="flex justify-center items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => dispatch(setPage(page - 1))}
-              disabled={page <= 1}
-              aria-label="Previous page"
-            >
+            <Button variant="secondary" size="sm" onClick={() => dispatch(setPage(page - 1))} disabled={page <= 1} aria-label="Previous page">
               ← Prev
             </Button>
-            <span className="text-sm text-slate-600 px-2">
-              Page {page} of {totalPages}
-            </span>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => dispatch(setPage(page + 1))}
-              disabled={page >= totalPages}
-              aria-label="Next page"
-            >
+            <span className="text-sm text-slate-600 px-2">Page {page} of {totalPages}</span>
+            <Button variant="secondary" size="sm" onClick={() => dispatch(setPage(page + 1))} disabled={page >= totalPages} aria-label="Next page">
               Next →
             </Button>
           </nav>
         )}
       </main>
 
-      {/* Create Modal */}
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="New Task">
-        <TaskForm
-          onSubmit={handleCreate}
-          onCancel={() => setShowCreate(false)}
-          submitLabel="Create Task"
-        />
+        <TaskForm onSubmit={handleCreate} onCancel={() => setShowCreate(false)} submitLabel="Create Task" />
       </Modal>
 
-      {/* Edit Modal */}
       <Modal isOpen={!!editTask} onClose={() => setEditTask(null)} title="Edit Task">
         {editTask && (
-          <TaskForm
-            initial={editTask}
-            onSubmit={handleEdit}
-            onCancel={() => setEditTask(null)}
-            submitLabel="Save Changes"
-          />
+          <TaskForm initial={editTask} onSubmit={handleEdit} onCancel={() => setEditTask(null)} submitLabel="Save Changes" />
         )}
       </Modal>
 
-      {/* Delete Confirm */}
-      <DeleteConfirm
-        task={deleteTarget}
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
-      />
+      <DeleteConfirm task={deleteTarget} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
     </div>
   );
 };

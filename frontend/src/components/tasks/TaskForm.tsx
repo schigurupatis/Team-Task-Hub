@@ -28,8 +28,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ initial, onSubmit, onCancel,
   const [loading, setLoading] = useState(false);
 
   const set = (field: keyof TaskFormData, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
+    setForm((prev: TaskFormData) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev: Partial<Record<keyof TaskFormData, string>>) => ({ ...prev, [field]: undefined }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +37,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ initial, onSubmit, onCancel,
     const result = TaskFormSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Partial<Record<keyof TaskFormData, string>> = {};
-      result.error.errors.forEach(err => {
+      result.error.errors.forEach((err: { path: (string | number)[]; message: string }) => {
         const key = err.path[0] as keyof TaskFormData;
         fieldErrors[key] = err.message;
       });
@@ -54,7 +54,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({ initial, onSubmit, onCancel,
 
   return (
     <form onSubmit={handleSubmit} noValidate aria-label="Task form" className="space-y-4">
-      {/* Title */}
       <div>
         <label htmlFor="task-title" className={labelClass}>
           Title <span className="text-rose-500" aria-hidden="true">*</span>
@@ -74,7 +73,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({ initial, onSubmit, onCancel,
         {errors.title && <p id="title-error" role="alert" className="mt-1 text-xs text-rose-600">{errors.title}</p>}
       </div>
 
-      {/* Description */}
       <div>
         <label htmlFor="task-desc" className={labelClass}>Description</label>
         <textarea
@@ -88,7 +86,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({ initial, onSubmit, onCancel,
         />
       </div>
 
-      {/* Priority + Status */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="task-priority" className={labelClass}>Priority</label>
@@ -118,7 +115,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({ initial, onSubmit, onCancel,
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex justify-end gap-3 pt-2">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel

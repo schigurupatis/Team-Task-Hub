@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { clsx } from 'clsx';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -52,7 +52,6 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             key={t.id}
             className={clsx(
               'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium',
-              'animate-in slide-in-from-right-5 duration-300',
               colors[t.type]
             )}
           >
@@ -65,15 +64,4 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       </div>
     </ToastContext.Provider>
   );
-};
-
-// Standalone hook if used outside provider
-export const useToastStandalone = () => {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const show = useCallback((message: string, type: ToastType = 'info') => {
-    const id = Math.random().toString(36).slice(2);
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
-  }, []);
-  return { toasts, show };
 };
