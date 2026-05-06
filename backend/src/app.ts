@@ -1,44 +1,27 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
+import express, { Request, Response, NextFunction } from 'express';
 import compression from 'compression';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import taskRoutes from './routes/task.routes';
-import { notFound, errorHandler, validateIdParam } from './middleware/error.middleware';
+import { notFound, errorHandler } from './middleware/error.middleware';
 
 export const createApp = () => {
   const app = express();
 
-  // Manually set CORS headers on EVERY response — belt and suspenders approach
-  app.use((_req: Request, res: Response, next) => {
+  // ── CORS — set headers manually on EVERY response, first middleware ──────
+  app.use((req: Request, res: Response, next: NextFunction) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS,HEAD');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-delete-token,Accept,Origin,X-Requested-With');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS, HEAD');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-delete-token, Accept, Origin');
     res.setHeader('Access-Control-Max-Age', '86400');
+
+    // Respond to preflight immediately
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(204);
+      return;
+    }
     next();
   });
-
-  // Handle preflight immediately — must be before helmet and other middleware
-  app.options('*', (_req: Request, res: Response) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS,HEAD');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-delete-token,Accept,Origin,X-Requested-With');
-    res.setHeader('Access-Control-Max-Age', '86400');
-    res.sendStatus(204);
-  });
-
-  // Security headers — disable helmet's CORS-overriding policies
-  app.use(
-    helmet({
-      crossOriginResourcePolicy: false,
-      crossOriginOpenerPolicy: false,
-      crossOriginEmbedderPolicy: false,
-    })
-  );
-
-  // cors() as backup layer
-  app.use(cors({ origin: '*' }));
 
   // Compression
   app.use(compression());
@@ -58,17 +41,17 @@ export const createApp = () => {
     max: 500,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { success: false, error: 'Too many requests, please try again later.' },
+    message: { success: false, error: 'Too many requests' },
   });
   app.use('/api', limiter);
 
-  // Health check — lightweight, wakes up Render cold start
+  // Health check
   app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Task routes
-  app.use('/api/tasks', validateIdParam, taskRoutes);
+  // Task routes (no validateIdParam on list routes)
+  app.use('/api/tasks', taskRoutes);
 
   // 404 & error handlers
   app.use(notFound);
