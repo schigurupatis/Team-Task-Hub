@@ -5,7 +5,11 @@ module.exports = {
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
   moduleNameMapper: {
+    // IMPORTANT: mock task.service BEFORE @/ alias so import.meta never loads
+    '^@/services/task\\.service(\\.ts)?$': '<rootDir>/src/__mocks__/task.service.ts',
+    // @/ path alias
     '^@/(.*)$': '<rootDir>/src/$1',
+    // CSS files
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
@@ -13,6 +17,7 @@ module.exports = {
       tsconfig: {
         jsx: 'react-jsx',
         strict: false,
+        esModuleInterop: true,
       },
       diagnostics: false,
     }],
@@ -22,6 +27,8 @@ module.exports = {
     'src/**/*.{ts,tsx}',
     '!src/main.tsx',
     '!src/setupTests.ts',
+    '!src/vite-env.d.ts',
+    '!src/__mocks__/**',
   ],
   coverageDirectory: 'coverage',
 };
