@@ -1,18 +1,16 @@
 import axios from 'axios';
 import { Task, CreateTaskDto, UpdateTaskDto, PaginatedResponse, ApiResponse, TaskFilters } from '@/types/task.types';
 
-// In production: VITE_API_URL = https://team-task-hub-85y6.onrender.com/api
-// In development: falls back to /api which is proxied by Vite to localhost:4000
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
-
-const DELETE_TOKEN =
-  import.meta.env.VITE_DELETE_TOKEN ||
-  'super-secret-delete-token-2026';
+const DELETE_TOKEN = import.meta.env.VITE_DELETE_TOKEN || 'super-secret-delete-token-2026';
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 60_000, // 60s — Render free tier can take 50s to cold start
-  headers: { 'Content-Type': 'application/json' },
+  timeout: 90_000, // 90s — Render free tier cold start can take up to 60s
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
   withCredentials: false,
 });
 
@@ -24,7 +22,7 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-// Response interceptor — normalize all errors
+// Response interceptor — normalize all errors to one format
 api.interceptors.response.use(
   res => res,
   err => {
@@ -36,6 +34,16 @@ api.interceptors.response.use(
     return Promise.reject(new Error(message));
   }
 );
+
+// Wake up Render backend before the user interacts
+// Called once on app load — sends a lightweight /health ping
+export const wakeUpBackend = async (): Promise<void> => {
+  try {
+    await axios.get(`${BASE_URL.replace('/api', '')}/health`, { timeout: 90_000 });
+  } catch {
+    // Silently ignore — wake-up is best-effort
+  }
+};
 
 export const taskApi = {
   getAll: async (filters: TaskFilters = {}): Promise<PaginatedResponse<Task>> => {
@@ -63,9 +71,7 @@ export const taskApi = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/tasks/${id}`, {
-      headers: {
-        'x-delete-token': DELETE_TOKEN,
-      },
+      headers: { 'x-delete-token': DELETE_TOKEN },
     });
   },
 };

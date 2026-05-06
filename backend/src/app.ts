@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -10,45 +10,40 @@ import { notFound, errorHandler, validateIdParam } from './middleware/error.midd
 export const createApp = () => {
   const app = express();
 
-  // Security headers
-  app.use(helmet());
+  // Manually set CORS headers on EVERY response — belt and suspenders approach
+  app.use((_req: Request, res: Response, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS,HEAD');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-delete-token,Accept,Origin,X-Requested-With');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    next();
+  });
 
-  // CORS — allow all origins in production since Netlify URL can change
-  // Lock this down to your specific domain once stable
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    process.env.FRONTEND_URL,
-  ].filter(Boolean) as string[];
+  // Handle preflight immediately — must be before helmet and other middleware
+  app.options('*', (_req: Request, res: Response) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS,HEAD');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-delete-token,Accept,Origin,X-Requested-With');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    res.sendStatus(204);
+  });
 
+  // Security headers — disable helmet's CORS-overriding policies
   app.use(
-    cors({
-      origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, Postman, curl)
-        if (!origin) return callback(null, true);
-        // Allow any netlify.app subdomain
-        if (
-          allowedOrigins.includes(origin) ||
-          origin.endsWith('.netlify.app') ||
-          origin.endsWith('.onrender.com')
-        ) {
-          return callback(null, true);
-        }
-        return callback(null, true); // Allow all for now — tighten after testing
-      },
-      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-delete-token'],
-      credentials: true,
+    helmet({
+      crossOriginResourcePolicy: false,
+      crossOriginOpenerPolicy: false,
+      crossOriginEmbedderPolicy: false,
     })
   );
 
-  // Handle preflight OPTIONS requests explicitly
-  app.options('*', cors());
+  // cors() as backup layer
+  app.use(cors({ origin: '*' }));
 
   // Compression
   app.use(compression());
 
-  // Body parser
+  // Body parsers
   app.use(express.json({ limit: '10kb' }));
   app.use(express.urlencoded({ extended: true }));
 
@@ -57,7 +52,7 @@ export const createApp = () => {
     app.use(morgan('dev'));
   }
 
-  // Rate limiting — more generous for free tier
+  // Rate limiting
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 500,
@@ -67,12 +62,12 @@ export const createApp = () => {
   });
   app.use('/api', limiter);
 
-  // Health check
-  app.get('/health', (_req, res) => {
+  // Health check — lightweight, wakes up Render cold start
+  app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Routes
+  // Task routes
   app.use('/api/tasks', validateIdParam, taskRoutes);
 
   // 404 & error handlers
