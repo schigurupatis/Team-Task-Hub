@@ -1,9 +1,9 @@
 # 🗂️ Team Task Hub
 
-A production-ready full-stack Task Management application built for the Cognizant Coding Challenge.
+A production-ready full-stack Task Management application built for the Team Task Hub
 
-**Live Demo:** https://team-task-hub.netlify.app  
-**GitHub:** https://github.com/YOUR_USERNAME/Team-Task-Hub
+**Live Demo:** https://69f9dd7ba989cf0007497a51--team-task-hub.netlify.app/  
+**GitHub:** https://github.com/schigurupatis/Team-Task-Hub
 
 ---
 
@@ -16,7 +16,7 @@ A production-ready full-stack Task Management application built for the Cognizan
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Team-Task-Hub.git
+git clone https://github.com/schigurupatis/Team-Task-Hub.git
 cd Team-Task-Hub
 
 # Install backend dependencies
@@ -87,7 +87,7 @@ cd frontend && npm test -- --coverage
 **Environment variables on Netlify:**
 | Key | Value |
 |-----|-------|
-| `VITE_API_URL` | `https://your-backend.onrender.com/api` |
+| `VITE_API_URL` | `https://team-task-hub-85y6.onrender.com/api` |
 | `VITE_DELETE_TOKEN` | `super-secret-delete-token-2026` |
 
 ### Backend — Render.com
@@ -164,7 +164,7 @@ Team-Task-Hub/
 
 ## 🔌 API Reference
 
-Base URL: `http://localhost:4000/api` (dev) | `https://your-backend.onrender.com/api` (prod)
+Base URL: `http://localhost:4000/api` (dev) | `https://team-task-hub-85y6.onrender.com/api` (prod)
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
@@ -186,7 +186,7 @@ Base URL: `http://localhost:4000/api` (dev) | `https://your-backend.onrender.com
 
 ### Protected Delete
 ```bash
-curl -X DELETE https://your-backend.onrender.com/api/tasks/<id> \
+curl -X DELETE https://team-task-hub-85y6.onrender.com/api/tasks/<id> \
   -H "x-delete-token: super-secret-delete-token-2026"
 ```
 
