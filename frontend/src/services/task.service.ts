@@ -1,28 +1,30 @@
 import axios from 'axios';
 import { Task, CreateTaskDto, UpdateTaskDto, PaginatedResponse, ApiResponse, TaskFilters } from '@/types/task.types';
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
+// In production: VITE_API_URL = https://team-task-hub-85y6.onrender.com/api
+// In development: falls back to /api which is proxied by Vite to localhost:4000
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-// Use || (not ??) so empty string also falls back to the hardcoded value
 const DELETE_TOKEN =
   import.meta.env.VITE_DELETE_TOKEN ||
   'super-secret-delete-token-2026';
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10_000,
+  timeout: 60_000, // 60s — Render free tier can take 50s to cold start
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: false,
 });
 
-// Request interceptor for logging
+// Request interceptor
 api.interceptors.request.use(config => {
   if (import.meta.env.DEV) {
-    console.debug(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+    console.debug(`[API] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   }
   return config;
 });
 
-// Response interceptor for error normalization
+// Response interceptor — normalize all errors
 api.interceptors.response.use(
   res => res,
   err => {
@@ -61,7 +63,9 @@ export const taskApi = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/tasks/${id}`, {
-      headers: { 'x-delete-token': DELETE_TOKEN },
+      headers: {
+        'x-delete-token': DELETE_TOKEN,
+      },
     });
   },
 };
