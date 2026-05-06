@@ -1,12 +1,12 @@
-import { TaskFormSchema } from '@/validators/task.validator';
-import { PRIORITY_LABELS, STATUS_LABELS, formatDate } from '@/utils/task.utils';
+import { TaskFormSchema } from '../src/validators/task.validator';
+import { PRIORITY_LABELS, STATUS_LABELS, formatDate } from '../src/utils/task.utils';
 import taskReducer, {
   setFilters,
   setPage,
   setSelectedTask,
   clearError,
-} from '@/store/slices/taskSlice';
-import { Task, TaskFilters } from '@/types/task.types';
+} from '../src/store/slices/taskSlice';
+import { Task, TaskFilters } from '../src/types/task.types';
 
 // ─── Validator Tests ───────────────────────────────────────────────────────────
 describe('TaskFormSchema — Zod client-side validation', () => {
