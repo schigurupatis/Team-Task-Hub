@@ -1,17 +1,32 @@
 # 🗂️ Team Task Hub
 
-A production-ready full-stack Task Management application built for the Team Task Hub
+A production-ready, full-stack Task Management application built with React, Node.js, TypeScript, and modern tooling.
 
-**Live Demo:** https://69f9dd7ba989cf0007497a51--team-task-hub.netlify.app/  
-**GitHub:** https://github.com/schigurupatis/Team-Task-Hub
+**🌐 Live Demo:** https://69f9dd7ba989cf0007497a51--team-task-hub.netlify.app/  
+**📁 Repository:** https://github.com/schigurupatis/Team-Task-Hub
+**⚙️ API Health:** https://team-task-hub-85y6.onrender.com/health
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## ✅ Assignment Requirements — All Met
+
+| # | Requirement | Implementation |
+|---|-------------|----------------|
+| 1 | RESTful API for Tasks (ID, Title, Description, Priority, Status) | 5 Express endpoints with consistent `{ success, data, error }` response format |
+| 2 | React Dashboard — modular, reusable components | 11 single-responsibility components (TaskCard, TaskForm, FiltersBar, StatsBar, Modal, Toast, etc.) |
+| 3 | Data Validation on client AND server | Zod schemas in both `frontend/src/validators/` and `backend/src/validators/` |
+| 4 | Performant search while typing | `useDebounce` hook — 350ms delay, 1 API call per search word not 1 per keystroke |
+| 5 | Protected delete with custom header | `x-delete-token` header required, frontend sends it automatically via Axios service layer |
+| — | Tests for Node.js and React | 20+ backend integration tests (Supertest) + 15+ frontend unit tests (Jest) |
+| — | Enterprise-style architecture | Separated layers: routes → controllers → models → validators → middleware |
+| — | GitHub repository | ✅ This repository |
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 20+
-- npm 10+
+- Node.js 20+ and npm 10+
 
 ### 1. Clone & Install
 
@@ -19,23 +34,20 @@ A production-ready full-stack Task Management application built for the Team Tas
 git clone https://github.com/schigurupatis/Team-Task-Hub.git
 cd Team-Task-Hub
 
-# Install backend dependencies
-cd backend && npm install
-
-# Install frontend dependencies
+cd backend  && npm install
 cd ../frontend && npm install
 ```
 
 ### 2. Environment Setup
 
-**Backend** — create `backend/.env`:
+**`backend/.env`**
 ```env
 PORT=4000
 NODE_ENV=development
 DELETE_TOKEN=super-secret-delete-token-2026
 ```
 
-**Frontend** — create `frontend/.env`:
+**`frontend/.env`**
 ```env
 VITE_API_URL=/api
 VITE_DELETE_TOKEN=super-secret-delete-token-2026
@@ -43,69 +55,44 @@ VITE_DELETE_TOKEN=super-secret-delete-token-2026
 
 ### 3. Run Locally
 
-Open **two terminals**:
-
 ```bash
 # Terminal 1 — Backend (http://localhost:4000)
-cd backend
-npm run dev
+cd backend && npm run dev
 
 # Terminal 2 — Frontend (http://localhost:5173)
-cd frontend
-npm run dev
+cd frontend && npm run dev
 ```
-
-Open browser at: **http://localhost:5173**
 
 ---
 
 ## 🧪 Running Tests
 
 ```bash
-# Backend integration tests (Jest + Supertest)
+# Backend — integration tests (Jest + Supertest)
 cd backend && npm test
 
-# Frontend unit tests (Jest)
+# Frontend — unit tests (Jest + ts-jest)
 cd frontend && npm test
 
 # With coverage report
-cd backend && npm test -- --coverage
+cd backend  && npm test -- --coverage
 cd frontend && npm test -- --coverage
 ```
 
----
+### What the tests cover
 
-## 🌐 Deployment
+**Backend (20+ tests):**
+- `GET /api/tasks` — pagination, search filter, priority filter, status filter
+- `POST /api/tasks` — creates task, rejects empty title, rejects invalid priority
+- `GET /api/tasks/:id` — returns task, 404 for unknown, 400 for invalid UUID
+- `PATCH /api/tasks/:id` — updates fields, validates input, handles not found
+- `DELETE /api/tasks/:id` — requires `x-delete-token`, rejects wrong/missing token
+- Zod schema unit tests — all validation rules for create, update, and filter schemas
 
-### Frontend — Netlify
-| Setting | Value |
-|---------|-------|
-| Base directory | `frontend` |
-| Build command | `npm install && npm run build` |
-| Publish directory | `dist` |
-
-**Environment variables on Netlify:**
-| Key | Value |
-|-----|-------|
-| `VITE_API_URL` | `https://team-task-hub-85y6.onrender.com/api` |
-| `VITE_DELETE_TOKEN` | `super-secret-delete-token-2026` |
-
-### Backend — Render.com
-| Setting | Value |
-|---------|-------|
-| Root directory | `backend` |
-| Build command | `npm install && npm run build` |
-| Start command | `npm start` |
-| Health check path | `/health` |
-
-**Environment variables on Render:**
-| Key | Value |
-|-----|-------|
-| `NODE_ENV` | `production` |
-| `DELETE_TOKEN` | `super-secret-delete-token-2026` |
-| `PORT` | `10000` |
-
-> ⚠️ **Note:** Render free tier sleeps after 15 minutes of inactivity. First request after sleep may take up to 60 seconds. The app automatically sends a wake-up ping on load.
+**Frontend (15+ tests):**
+- Zod `TaskFormSchema` — valid data, empty title, invalid priority/status, defaults
+- Redux `taskSlice` reducers — setFilters, setPage, setSelectedTask, clearError, initial state
+- `task.utils` — PRIORITY_LABELS, STATUS_LABELS, formatDate
 
 ---
 
@@ -113,51 +100,48 @@ cd frontend && npm test -- --coverage
 
 ```
 Team-Task-Hub/
-├── backend/                        # Node.js + Express API
+├── backend/                        ← Node.js + Express API
 │   ├── src/
-│   │   ├── app.ts                  # Express app factory (createApp)
-│   │   ├── index.ts                # Server entry point — calls app.listen()
+│   │   ├── app.ts                  ← Express app factory (createApp)
+│   │   ├── index.ts                ← Server entry — calls app.listen()
 │   │   ├── controllers/
-│   │   │   └── task.controller.ts  # Request handlers (thin layer)
+│   │   │   └── task.controller.ts  ← Thin request handlers
 │   │   ├── middleware/
-│   │   │   └── error.middleware.ts # 404 + global error handler
+│   │   │   └── error.middleware.ts ← 404 + global error handler
 │   │   ├── models/
-│   │   │   └── task.model.ts       # In-memory Map<string, Task> store
+│   │   │   └── task.model.ts       ← In-memory Map<string, Task> store
 │   │   ├── routes/
-│   │   │   └── task.routes.ts      # URL → controller mapping
+│   │   │   └── task.routes.ts      ← URL → controller mapping + UUID validation
 │   │   ├── types/
-│   │   │   └── task.types.ts       # Shared TypeScript interfaces
+│   │   │   └── task.types.ts       ← Shared TypeScript interfaces
 │   │   └── validators/
-│   │       └── task.validator.ts   # Zod schemas (server-side)
+│   │       └── task.validator.ts   ← Zod schemas
 │   └── tests/
-│       ├── tasks.test.ts           # API integration tests (Supertest)
-│       └── validators.test.ts      # Zod schema unit tests
+│       ├── tasks.test.ts           ← API integration tests
+│       └── validators.test.ts      ← Zod schema unit tests
 │
-└── frontend/                       # React + Vite SPA
+└── frontend/                       ← React + Vite SPA
     ├── src/
-    │   ├── App.tsx                  # Root component + Redux Provider
+    │   ├── App.tsx                 ← Root + Redux Provider
     │   ├── components/
-    │   │   ├── common/              # Badge, Button, Modal, Toast
-    │   │   ├── layout/              # Header
-    │   │   └── tasks/               # TaskCard, TaskForm, FiltersBar, StatsBar, DeleteConfirm
+    │   │   ├── common/             ← Button, Badge, Modal, Toast
+    │   │   ├── layout/             ← Header
+    │   │   └── tasks/              ← TaskCard, TaskForm, TaskFiltersBar, StatsBar, DeleteConfirm
     │   ├── hooks/
-    │   │   ├── useAppDispatch.ts    # Typed Redux hooks
-    │   │   └── useDebounce.ts       # 350ms search debounce
+    │   │   ├── useAppDispatch.ts   ← Typed Redux hooks
+    │   │   └── useDebounce.ts      ← 350ms search debounce
     │   ├── pages/
-    │   │   └── Dashboard.tsx        # Main page — orchestrates all components
+    │   │   └── Dashboard.tsx       ← Main page — orchestrates all components
     │   ├── services/
-    │   │   └── task.service.ts      # All Axios API calls (single source of truth)
+    │   │   └── task.service.ts     ← All Axios API calls (single source of truth)
     │   ├── store/
-    │   │   ├── index.ts             # Redux store configuration
-    │   │   └── slices/taskSlice.ts  # Actions, reducers, async thunks
-    │   ├── types/
-    │   │   └── task.types.ts        # Shared TypeScript interfaces
-    │   ├── utils/
-    │   │   └── task.utils.ts        # Color maps, label maps, formatDate
-    │   └── validators/
-    │       └── task.validator.ts    # Zod schemas (client-side)
+    │   │   ├── index.ts            ← Redux store
+    │   │   └── slices/taskSlice.ts ← Actions, reducers, async thunks
+    │   ├── types/                  ← Shared TypeScript interfaces
+    │   ├── utils/                  ← Color maps, labels, formatDate
+    │   └── validators/             ← Zod schemas (client-side mirror of server)
     └── tests/
-        └── unit.test.ts             # Redux slice + validator unit tests
+        └── unit.test.ts            ← Redux + validator unit tests
 ```
 
 ---
@@ -166,75 +150,66 @@ Team-Task-Hub/
 
 Base URL: `http://localhost:4000/api` (dev) | `https://team-task-hub-85y6.onrender.com/api` (prod)
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/tasks` | List tasks (paginated, filterable) | No |
-| GET | `/tasks/:id` | Get single task | No |
-| POST | `/tasks` | Create task | No |
-| PATCH | `/tasks/:id` | Update task (partial) | No |
-| DELETE | `/tasks/:id` | Delete task | Yes — `x-delete-token` header |
-| GET | `/health` | Health check | No |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/tasks` | List tasks — supports `?search=`, `?priority=`, `?status=`, `?page=`, `?limit=` | None |
+| GET | `/tasks/:id` | Get single task by UUID | None |
+| POST | `/tasks` | Create task — body: `{ title, description, priority, status }` | None |
+| PATCH | `/tasks/:id` | Update task (partial — only send changed fields) | None |
+| DELETE | `/tasks/:id` | Delete task | `x-delete-token` header required |
+| GET | `/health` | Health check | None |
 
-### Query Parameters for GET /tasks
-| Param | Type | Description |
-|-------|------|-------------|
-| `search` | string | Search in title and description |
-| `priority` | low \| medium \| high \| critical | Filter by priority |
-| `status` | todo \| in-progress \| done \| archived | Filter by status |
-| `page` | number | Page number (default: 1) |
-| `limit` | number | Items per page (default: 20, max: 100) |
-
-### Protected Delete
-```bash
-curl -X DELETE https://team-task-hub-85y6.onrender.com/api/tasks/<id> \
-  -H "x-delete-token: super-secret-delete-token-2026"
+### Response Format (always consistent)
+```json
+{ "success": true,  "data": { ... } }
+{ "success": false, "error": "Validation failed", "message": "title: Title is required" }
 ```
 
 ---
 
 ## 🧠 Architectural Decisions
 
-### App Factory Pattern (`createApp()`)
-The Express app is created inside a function and exported — `index.ts` calls it and then `.listen()`. This means tests can import `createApp()` and get a fresh app instance without binding to a port. Without this, every test file would conflict trying to use the same port.
+### 1. App Factory Pattern — `createApp()`
+The Express app is created inside a factory function. `index.ts` calls `createApp()` then `.listen()`. Tests import `createApp()` and get a fresh app without binding a port — this is what makes Supertest integration tests work without port conflicts.
 
-### In-Memory Store (`Map<string, Task>`)
-`Map` gives O(1) lookups by ID. All data access goes through the `TaskStore` class — swapping to PostgreSQL or MongoDB requires only changing this file. Controllers and routes stay untouched.
+### 2. Repository Pattern — `TaskStore` class
+All data access goes through one class. Currently uses `Map<string, Task>` (O(1) lookups). Swapping to PostgreSQL means rewriting only this class — zero changes to controllers, routes, validators, or the frontend.
 
-### Dual Validation with Zod
-The same validation library runs on both client and server. Client-side validation gives instant feedback without a network round-trip. Server-side validation is the real security layer — it runs regardless of what the client sends.
+### 3. Service Layer — `task.service.ts`
+Every Axios call lives in one file. Components never import Axios directly. Adding auth tokens, changing the API base URL, or modifying request format requires changes in exactly one place.
 
-### Redux Toolkit over Context API
-Context API re-renders all consumers when any value changes. Redux uses memoized selectors — only components that use the changed state re-render. For a task list with many cards, this prevents unnecessary re-renders on every update.
+### 4. Dual Validation with Zod
+The same Zod library runs on both client and server. Client-side validation gives instant field-level feedback without a network round-trip. Server-side validation is the real security layer — it runs regardless of what the client sends.
 
-### Service Layer (`task.service.ts`)
-All Axios calls live in one file. Components never import axios directly. This means changing the API base URL, adding authentication headers, or modifying request format requires changes in exactly one place.
+### 5. Redux Toolkit over Context API
+Context API re-renders all consumers when any value changes. Redux uses memoized selectors — only components whose data changed re-render. For a task grid with many cards this prevents unnecessary re-renders on every state update.
 
-### Debounced Search (`useDebounce`)
-Search input is debounced at 350ms. Typing a 6-character word fires 1 API request instead of 6. At scale with many concurrent users, this significantly reduces server load.
+### 6. Debounced Search — `useDebounce`
+Search is debounced at 350ms. Typing a 6-character word fires 1 API request instead of 6. Extracted as a custom hook so it's reusable, testable, and not duplicated across components.
 
-### Protected Delete with Custom Header
-The `DELETE /api/tasks/:id` endpoint requires an `x-delete-token` header. The frontend sends this automatically via the Axios service layer. This demonstrates the pattern used for API key authentication in production systems.
+### 7. Consistent API Response Shape
+Every endpoint returns `{ success, data?, error?, message? }`. The frontend always checks `success` first. This contract means adding new endpoints is predictable and the error handling pattern never changes.
+
+### 8. UUID Validation Middleware
+A `validateId()` middleware runs before any `/:id` controller. Malformed IDs (path traversal attempts, empty strings) return 400 before the controller or data store is touched.
 
 ---
 
 ## 🛡️ Security Features
-
-- **Raw CORS headers** — set on every response before any other middleware
-- **Rate limiting** — 500 requests per 15 minutes per IP
-- **Input validation** — Zod schemas reject invalid data on both client and server
-- **Body size limit** — 10kb maximum payload (DoS protection)
-- **UUID validation** — malformed IDs rejected with 400 before controller runs
-- **Protected delete** — custom header required, checked before any data access
-- **Environment variables** — all secrets in `.env` files, never committed to Git
+- Manual CORS headers set on every response before all other middleware
+- Rate limiting: 500 requests per 15 minutes per IP (express-rate-limit)
+- Body size limit: 10kb maximum payload (DoS protection)
+- Input validation: Zod schemas reject invalid data on both client and server
+- UUID validation: malformed IDs rejected before controllers run
+- Protected delete: `x-delete-token` header validated before any data access
+- Secrets in environment variables — never committed to source code
 
 ---
 
 ## ♿ Accessibility (WCAG 2.1 AA)
-
 - Skip-to-content link for keyboard users
 - Semantic HTML: `<header>`, `<main>`, `<article>`, `<nav>`, `<time>`
 - `aria-live`, `aria-busy`, `aria-required`, `role="alert"` throughout
-- All interactive elements keyboard-navigable
-- Focus-visible styles on all buttons and inputs
-- Color is never the sole conveyor of information (badges have text labels)
-- Native `<dialog>` element for modals (built-in focus trapping)
+- `cursor-pointer` on all interactive elements
+- Native `<dialog>` for modals — built-in focus trapping and Escape key support
+- Color is never the sole conveyor of information (badges include text labels)
