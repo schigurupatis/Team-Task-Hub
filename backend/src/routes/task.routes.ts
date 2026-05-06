@@ -10,11 +10,12 @@ import { ApiResponse } from '../types/task.types';
 
 const router = Router();
 
-// UUID validation — only for routes with :id param
+// UUID validation middleware — uses generic Request (no IdParam) to satisfy Express types
 const validateId = (req: Request, res: Response, next: NextFunction): void => {
-  const { id } = req.params;
+  const idParam = req.params['id'];
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(id)) {
+  if (!id || !uuidRegex.test(id)) {
     const response: ApiResponse = { success: false, error: 'Invalid task ID format' };
     res.status(400).json(response);
     return;
@@ -22,11 +23,11 @@ const validateId = (req: Request, res: Response, next: NextFunction): void => {
   next();
 };
 
-// Collection routes — no ID validation needed
+// Collection routes
 router.get('/', getAllTasks);
 router.post('/', createTask);
 
-// Individual resource routes — validate UUID first
+// Individual resource routes
 router.get('/:id', validateId, getTaskById);
 router.patch('/:id', validateId, updateTask);
 router.delete('/:id', validateId, deleteTask);
