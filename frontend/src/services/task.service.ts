@@ -1,12 +1,17 @@
 import axios from 'axios';
 import { Task, CreateTaskDto, UpdateTaskDto, PaginatedResponse, ApiResponse, TaskFilters } from '@/types/task.types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
-const DELETE_TOKEN = import.meta.env.VITE_DELETE_TOKEN || 'super-secret-delete-token-2026';
+// Hardcode the production URL as fallback — guarantees it always works
+// even if Netlify env var isn't picked up during build
+const BASE_URL = import.meta.env.VITE_API_URL
+  || 'https://team-task-hub-85y6.onrender.com/api';
+
+const DELETE_TOKEN = import.meta.env.VITE_DELETE_TOKEN
+  || 'super-secret-delete-token-2026';
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 90_000, // 90s — Render free tier cold start can take up to 60s
+  timeout: 90_000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -35,11 +40,15 @@ api.interceptors.response.use(
   }
 );
 
-// Wake up Render backend before the user interacts
-// Called once on app load — sends a lightweight /health ping
+// Wake up Render backend on app load
+// Extracts base without /api suffix for the health endpoint
 export const wakeUpBackend = async (): Promise<void> => {
   try {
-    await axios.get(`${BASE_URL.replace('/api', '')}/health`, { timeout: 90_000 });
+    // Remove trailing /api to get the root URL
+    const rootUrl = BASE_URL.endsWith('/api')
+      ? BASE_URL.slice(0, -4)
+      : BASE_URL;
+    await axios.get(`${rootUrl}/health`, { timeout: 90_000 });
   } catch {
     // Silently ignore — wake-up is best-effort
   }

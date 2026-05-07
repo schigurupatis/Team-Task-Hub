@@ -8,6 +8,7 @@ export const TaskFormSchema = z.object({
     .string({ required_error: 'Title is required' })
     .min(1, 'Title is required')
     .max(200, 'Title must be at most 200 characters'),
+    //.regex(/[a-zA-Z]/, 'Title must contain at least one letter'),
   description: z.string().max(2000, 'Description too long').default(''),
   priority: PriorityEnum,
   status: StatusEnum,

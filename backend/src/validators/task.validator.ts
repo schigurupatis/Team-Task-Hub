@@ -9,6 +9,7 @@ export const CreateTaskSchema = z.object({
     .min(1, 'Title cannot be empty')
     .max(200, 'Title must be at most 200 characters')
     .trim(),
+    //.regex(/[a-zA-Z]/, 'Title must contain at least one letter'),
   description: z
     .string()
     .max(2000, 'Description must be at most 2000 characters')
