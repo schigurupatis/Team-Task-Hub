@@ -63,5 +63,4 @@ Essential for Single Page Applications (React/Vite) to handle page refreshes.
 The app should now be accessible at your EC2 Public IP:
 **URL:** http://65.2.148.54/
 
----
-*Last updated: $(date +%Y-%m-%d)*
+

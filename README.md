@@ -2,7 +2,7 @@
 
 A production-ready, full-stack Task Management application built with React, Node.js, TypeScript, and modern tooling.
 
-**🌐 Live Demo:** https://team-task-hub.netlify.app/ 
+**🌐 Live Demo:** http://65.2.148.54/
 **📁 Repository:** https://github.com/schigurupatis/Team-Task-Hub
 **⚙️ API Health:** https://team-task-hub-85y6.onrender.com/health
 
