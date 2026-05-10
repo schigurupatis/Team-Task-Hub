@@ -11,14 +11,11 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
+    
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
@@ -26,24 +23,23 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    # - run: npm ci
-    # - run: npm run build --if-present
-    # - run: npm test
+        # Point to where your package-lock.json is
+        cache-dependency-path: frontend/package-lock.json 
+
     - name: "Installing Dependencies"
-      run: npm i
+      working-directory: ./frontend
+      run: npm install
+
     - name: "Build Command"
-      run: npm run build
-
-
+      working-directory: ./frontend
+      # Only run if you have a "build" script in frontend/package.json
+      run: npm run build --if-present 
 
   unit-tests:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v4
@@ -52,8 +48,12 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    # - run: npm ci
-    # - run: npm run build --if-present
-    # - run: npm test
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: "Installing Dependencies"
+      working-directory: ./frontend
+      run: npm install
+
     - name: "Running Test Cases"
+      working-directory: ./frontend
       run: npm run test
