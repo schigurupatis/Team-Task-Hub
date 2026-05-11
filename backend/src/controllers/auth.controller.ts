@@ -62,7 +62,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
   // Step 6: Generate JWT
   const payload = { userId: user.id, username: user.username, email: user.email };
-  const token   = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+  const token = jwt.sign(payload, JWT_SECRET as string, { 
+    expiresIn: JWT_EXPIRES as any 
+  });
 
   // Step 7: Respond with safe user + token
   res.status(201).json({
@@ -115,7 +117,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
   // Step 4: Generate fresh JWT
   const payload = { userId: user.id, username: user.username, email: user.email };
-  const token   = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+  const token = jwt.sign(payload, JWT_SECRET as string, { 
+    expiresIn: JWT_EXPIRES as any 
+  });
 
   // Step 5: Respond with safe user + token
   res.status(200).json({
