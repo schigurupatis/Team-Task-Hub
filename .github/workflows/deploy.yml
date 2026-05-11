@@ -2,7 +2,8 @@ name: Deployment or Continuous Deployment (CD)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "workflow/deploy" ]
+
 
 jobs:
   build-and-push:
